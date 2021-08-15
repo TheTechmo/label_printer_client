@@ -1,0 +1,95 @@
+<template>
+    <el-container id="app">
+        <el-main>
+            <h2>Devices: {{ devices }}</h2>
+            <h2>Printers</h2>
+            <ul>
+                <li v-bind:key="index" v-for="(p, index) in printers">
+                    <el-link class="icon-link" :class="pIcon(p)" :type="pColour(p)"></el-link> {{ p.name }}
+                </li>
+            </ul>
+        </el-main>
+    </el-container>
+</template>
+
+<script>
+const xmljs = require('xml-js')
+const { ipcRenderer } = require('electron')
+
+const Dymo = require('dymojs')
+let dymo = new Dymo()
+
+
+export default {
+    name: 'App',
+    data() {
+        return {
+            devices: ""
+        }
+    },
+    asyncComputed: {
+        printers: {
+            get() {
+                return dymo.getPrinters().then((x) => {
+                    let data = this.fixTheFuckingBase64Preview(x)
+
+                    let js = JSON.parse(xmljs.xml2json(data, {compact: true}))
+
+                    console.log(js)
+
+                    return Object.values(js.Printers).map((obj) => {
+                        return {
+                            name: obj.Name._text,
+                            connected: obj.IsConnected._text.toLowerCase() === "true"
+                        }
+                    })
+                }).catch((e) => alert("ERROR: " + e.toString()))
+
+            },
+            default: "..."
+        },
+    },
+    methods: {
+        fixTheFuckingBase64Preview(data) {
+            return data.substring(1, data.length - 1).replace(/\\n/g, "").replace(/\\/g, '')
+        },
+        pIcon(p) {
+            return p.connected ? 'el-icon-success' : 'el-icon-warning'
+        },
+        pColour(p) {
+            return p.connected ? 'success' : 'warning'
+        }
+    },
+    mounted() {
+        ipcRenderer.on('usbDeviceChange', (event, device) => {
+            console.log(event)
+            console.log(device)
+            this.$asyncComputed.printers.update()
+        })
+
+    }
+}
+</script>
+
+<style lang="scss">
+#app {
+    font-family: Avenir, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: center;
+    color: #2c3e50;
+    margin-top: 60px;
+}
+li {
+    list-style: none !important;
+}
+
+.icon-link {
+    font-size: 20px;
+    cursor: default;
+
+    &::after {
+      border: none !important;
+    }
+}
+</style>
