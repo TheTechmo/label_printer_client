@@ -1,7 +1,7 @@
 import WebSocket from 'ws'
-import config from '../../config'
+const config = require('../../config')
 
-module.exports = {
+const relayServer = {
     data: {
         sock: null,
 
@@ -11,16 +11,25 @@ module.exports = {
     },
 
     init() {
-        this.data.sock = new WebSocket(config.RELAY_SERVER.URL, null, {
+        this.data.sock = new WebSocket("wss://" + config.RELAY_SERVER.URL, 'wss', {
+            method: 'POST',
             headers: {
                 "X-SECRET": process.env.RELAY_SERVER_SECRET
-            }
+            },
+            followRedirects: true
         })
+
+        // setInterval(() => console.error(this.data.sock.readyState), 1000)
+
+        // this.data.sock.on('open', console.error)
     },
 
     events: {
         status(event, data) {
-            this.emit('status')
+            console.log(event, data)
+            this.emit('status', this.data.sock.readyState)
         }
     }
 }
+
+export default relayServer

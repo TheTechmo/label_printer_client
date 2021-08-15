@@ -1,10 +1,10 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, nativeTheme, ipcMain } from 'electron'
-import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
-import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
-const glob = require('glob')
-const path = require('path')
+import {app, protocol, BrowserWindow, nativeTheme, ipcMain} from 'electron'
+import {createProtocol} from 'vue-cli-plugin-electron-builder/lib'
+import installExtension, {VUEJS_DEVTOOLS} from 'electron-devtools-installer'
+import ipcChannels from "./electronIpcChannels";
+
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -13,8 +13,10 @@ protocol.registerSchemesAsPrivileged([
     {scheme: 'app', privileges: {secure: true, standard: true}}
 ])
 
+
 async function createWindow() {
     nativeTheme.themeSource = 'light'
+
 
     // Create the browser window.
     const win = new BrowserWindow({
@@ -30,41 +32,45 @@ async function createWindow() {
         }
     })
 
+
     if (process.env.WEBPACK_DEV_SERVER_URL) {
+
         // Load the url of the dev server if in development mode
         await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
+
+
         if (!process.env.IS_TEST) win.webContents.openDevTools()
+
     } else {
+
         createProtocol('app')
         // Load the index.html when not in development
         win.loadURL('app://./index.html')
+
     }
 
-    // Load and register ipc events and emits
-    glob.sync("./electronIpcChannels/**/*.js").forEach((file) => {
 
-        // Load in file
-        let mod = require(path.resolve(file))
-
-        // Prefix
-        let mod_name = file.search(/\/[A-z0-9]+\./g)
-
-        // Inject emit method into module
+    Object.entries(ipcChannels).forEach(([mod_name, mod]) => {
         if (Object.hasOwnProperty.call(mod, 'emit')) {
             mod.emit = (ch, args) => ipcMain.emit(mod_name + "_" + ch, args)
 
         }
 
+
         // Register events and attach handlers
-        Object.entries(mod.events).forEach(([channel, handler]) => {
-            ipcMain.on(
-                mod_name + "_" + channel, handler)
-        })
+        if (Object.hasOwnProperty.call(mod, 'events')) {
+            Object.entries(mod.events).forEach(([channel, handler]) => {
+                ipcMain.on(
+                    mod_name + "_" + channel, handler)
+            })
+        }
 
         // Execute init code in module
-        mod.init()
-
+        if (Object.hasOwnProperty.call(mod, 'init')) {
+            mod.init()
+        }
     })
+
 }
 
 // Quit when all windows are closed.

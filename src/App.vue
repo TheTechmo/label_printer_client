@@ -2,14 +2,13 @@
     <div>
         <status-bar
                 :lp_status="devDeviceConnectedStatus"
-                :rs_status="websocketStatus"
+                :rs_status="relayServerStatus === 1"
                 :ls_status="labelServiceStatus"
         />
         <b-container id="app">
             <h2>Time: </h2><span>{{ timestamp }}</span>
             <h2>Working Hours? </h2><span>{{ isWorkingHours }}</span>
-            <h2>WebSocket: {{ wsClient == null ? "null" : wsClient.readyState }}
-                <b-button @click="connectToRelayServer">Connect</b-button>
+            <h2>WebSocket: {{ relayServerStatus }}
             </h2>
             <h2>Status:
                 <b-icon :icon="devIcon" :variant="devColour"/>
@@ -46,7 +45,7 @@ export default {
             timestamp: "",
             labelServiceStatus: null,
             connectedDevices: [],
-            wsClient: null
+            relayServerStatus: null
         }
     },
     computed: {
@@ -68,9 +67,6 @@ export default {
             return now.isBetween(start, end)
 
         },
-        websocketStatus() {
-            return this.wsClient != null && this.wsClient.readyState === WebSocket.OPEN
-        }
     },
     asyncComputed: {
         printers: {
@@ -119,28 +115,10 @@ export default {
                     })
                 })
         },
-        connectToRelayServer() {
-            this.wsClient = new W3CWebSocket(
-                "ws://" + this.$config.RELAY_SERVER.URL,
-                "echo-protocol",
-                "127.0.0.1",
-                {
-                    "X-SECRET": process.env.VUE_APP_RELAY_SERVER_SECRET
-                }
-            )
-
-            this.wsClient.onerror = (e) => {
-                console.warn(e)
-            }
-
-            this.wsClient.onmessage = (m) => {
-                console.info(m)
-            }
-
-            console.log(this.wsClient)
-
-            console.log("attempted to connect")
-
+        checkRelayServerStatus() {
+            ipcRenderer.invoke('relayServer_status').then((response) => {
+                this.relayServerStatus = response
+            })
         }
     },
     mounted() {
@@ -159,7 +137,9 @@ export default {
             1000
         )
 
-        this.connectToRelayServer()
+        this.checkRelayServerStatus()
+
+        setInterval(this.checkRelayServerStatus, this.$config.RELAY_SERVER.PING_INTERVAL)
 
 
         setInterval(
