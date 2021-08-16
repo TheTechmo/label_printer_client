@@ -5,9 +5,10 @@ module.exports = {
         FROM: "0830",
         TO: "1430"
     },
-    LABEL_SERVICE_POLLING_INTERVAL: 15000,
+    LABEL_SERVICE_POLLING_INTERVAL: 10000,
     RELAY_SERVER: {
         URL: "square-orders.zachb.nz",
         PING_INTERVAL: 10000
-    }
+    },
+    SELECTED_PRINTER: "DYMO LabelWriter 400"
 }

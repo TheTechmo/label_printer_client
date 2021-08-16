@@ -52,15 +52,25 @@ async function createWindow() {
 
     Object.entries(ipcChannels).forEach(([mod_name, mod]) => {
         if (Object.hasOwnProperty.call(mod, 'emit')) {
-            mod.emit = (ch, args) => ipcMain.emit(mod_name + "_" + ch, args)
+            mod.emit = (ch, args) => {
+                win.webContents.send(mod_name + "_" + ch, args)
+            }
 
         }
 
 
-        // Register events and attach handlers
-        if (Object.hasOwnProperty.call(mod, 'events')) {
-            Object.entries(mod.events).forEach(([channel, handler]) => {
+        // Register listeners
+        if (Object.hasOwnProperty.call(mod, 'listeners')) {
+            Object.entries(mod.listeners).forEach(([channel, listener]) => {
                 ipcMain.on(
+                    mod_name + "_" + channel, listener)
+            })
+        }
+
+        // Register handlers
+        if (Object.hasOwnProperty.call(mod, 'handlers')) {
+            Object.entries(mod.handlers).forEach(([channel, handler]) => {
+                ipcMain.handle(
                     mod_name + "_" + channel, handler)
             })
         }
@@ -69,7 +79,9 @@ async function createWindow() {
         if (Object.hasOwnProperty.call(mod, 'init')) {
             mod.init()
         }
+
     })
+
 
 }
 
@@ -101,6 +113,7 @@ app.on('ready', async () => {
         }
     }
     createWindow()
+
 })
 
 // Exit cleanly on request from parent process in development mode.

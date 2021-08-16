@@ -1,25 +1,34 @@
 <template>
     <div>
         <status-bar
-                :lp_status="devDeviceConnectedStatus"
+                :lp_status="printerStatus"
                 :rs_status="relayServerStatus === 1"
                 :ls_status="labelServiceStatus"
         />
         <b-container id="app">
-            <h2>Time: </h2><span>{{ timestamp }}</span>
-            <h2>Working Hours? </h2><span>{{ isWorkingHours }}</span>
-            <h2>WebSocket: {{ relayServerStatus }}
-            </h2>
-            <h2>Status:
-                <b-icon :icon="devIcon" :variant="devColour"/>
-            </h2>
-            <h2>Printers</h2>
-            <ul>
-                <li v-bind:key="index" v-for="(p, index) in printers">
-                    <b-icon :icon="pIcon(p)" :variant="pColour(p)"></b-icon>
-                    {{ p.name }}
-                </li>
-            </ul>
+            <b-row>
+                <b-col cols="4">
+                    <h2>Time: </h2><span>{{ timestamp }}</span>
+                    <h2>Working Hours? </h2><span>{{ isWorkingHours }}</span>
+                    <h2>WebSocket: {{ relayServerStatus }}
+                    </h2>
+                    <h2>Status:
+                        <b-icon :icon="pIcon(printerStatus)" :variant="pColour(printerStatus)"/>
+                    </h2>
+                    <h2>Printers</h2>
+                    <ul>
+                        <li v-bind:key="'printer_' + name" v-for="(value, name) in printers">
+                            <b-icon :icon="pIcon(value)" :variant="pColour(value)"></b-icon>
+                            {{ name }}
+                        </li>
+                    </ul>
+                </b-col>
+                <b-col cols="8">
+                    <div id="imageWrapper">
+                        <img v-if="latestImage" id="labelImage" :src="`data:image/png;base64,${b64LabelPreview}`" alt="Label Preview" />
+                    </div>
+                </b-col>
+            </b-row>
         </b-container>
     </div>
 </template>
@@ -31,6 +40,7 @@ const xmlJS = require('xml-js')
 const {ipcRenderer} = require('electron')
 const moment = require('moment')
 const Dymo = require('dymojs')
+import { readFile } from 'fs/promises'
 
 let dymo = new Dymo()
 
@@ -45,19 +55,23 @@ export default {
             timestamp: "",
             labelServiceStatus: null,
             connectedDevices: [],
-            relayServerStatus: null
+            relayServerStatus: null,
+            latestImage: ""
         }
     },
     computed: {
+        printerStatus() {
+            return (process.env.NODE_ENV === 'development' && this.devDeviceConnectedStatus)
+                || this.realPrinterStatus
+        },
+        realPrinterStatus() {
+            return this.printers !== undefined
+                && Object.hasOwnProperty.call(this.printers, this.$config.SELECTED_PRINTER)
+                && this.printers[this.$config.SELECTED_PRINTER]
+        },
         devDeviceConnectedStatus() {
             return this.connectedDevices.map((x) => x.serialNumber)
                 .indexOf(this.$config.FAKE_LP_SERIAL) > -1
-        },
-        devIcon() {
-            return this.devDeviceConnectedStatus ? 'check-circle-fill' : 'exclamation-triangle-fill'
-        },
-        devColour() {
-            return this.devDeviceConnectedStatus ? 'success' : 'danger'
         },
         isWorkingHours() {
             const format = "HHmm"
@@ -67,49 +81,52 @@ export default {
             return now.isBetween(start, end)
 
         },
+        b64LabelPreview() {
+            return this.fixTheFuckingDymoResponse(this.latestImage)
+        }
     },
     asyncComputed: {
         printers: {
-            get() {
-                return dymo.getPrinters().then((x) => {
-                    let data = this.fixTheFuckingBase64Preview(x)
+            async get() {
+                let printersList = this.fixTheFuckingDymoResponse(await dymo.getPrinters())
 
-                    let js = null
-                    try {
-                        js = JSON.parse(xmlJS.xml2json(data, {compact: true}))
-                    } catch (e) {
-                        return
-                    }
+                let js = null
+                try {
+                    js = JSON.parse(xmlJS.xml2json(printersList, {compact: true}))
+                } catch (e) {
+                    return
+                }
 
+                let printersDict = {}
 
-                    return Object.values(js.Printers).map((obj) => {
-                        return {
-                            name: obj.Name._text,
-                            connected: obj.IsConnected._text.toLowerCase() === "true"
-                        }
-                    })
-                }).catch((e) => alert("ERROR: " + e.toString()))
+                Object.values(js.Printers).forEach((obj) => {
+                    let name = obj.Name._text
+                    let connected = obj.IsConnected._text.toLowerCase() === "true"
+                    printersDict[name] = connected
+                })
+
+                return printersDict
 
             },
-            default: "..."
+            default: {}
         },
     },
     methods: {
-        fixTheFuckingBase64Preview(data) {
+        fixTheFuckingDymoResponse(data) {
             return data.substring(1, data.length - 1).replace(/\\n/g, "").replace(/\\/g, '')
         },
         pIcon(p) {
-            return p.connected ? 'check-circle-fill' : 'exclamation-triangle-fill'
+            return p ? 'check-circle-fill' : 'exclamation-triangle-fill'
         },
         pColour(p) {
-            return p.connected ? 'success' : 'danger'
+            return p ? 'success' : 'danger'
         },
         checkDymoStatus() {
             dymo.getStatus()
                 .then((status) => this.labelServiceStatus = !!status)
                 .catch(() => {
                     this.labelServiceStatus = false
-                    ipcRenderer.send('services', {
+                    ipcRenderer.send('services_action', {
                         action: "START",
                         service: "dymo_label_service"
                     })
@@ -122,12 +139,10 @@ export default {
         }
     },
     mounted() {
-        ipcRenderer.on('usbDevices_change', (event, device, devices) => {
-            console.log("Event", event)
-            console.log("Device", device)
-            console.log("Devices", device)
+        this.$asyncComputed.printers.update()
+        ipcRenderer.on('usbDevices_change', (event, {devices}) => {
             this.connectedDevices = devices
-            this.$asyncComputed.printers.update()
+            setTimeout(this.$asyncComputed.printers.update, 250)
         })
 
     },
@@ -137,7 +152,10 @@ export default {
             1000
         )
 
-        this.checkRelayServerStatus()
+        setTimeout(() => {
+            this.checkRelayServerStatus()
+            this.checkDymoStatus()
+        }, 2000)
 
         setInterval(this.checkRelayServerStatus, this.$config.RELAY_SERVER.PING_INTERVAL)
 
@@ -153,7 +171,26 @@ export default {
             }
         })
 
-        this.checkDymoStatus()
+        ipcRenderer.on('relayServer_newOrder', (event, order) => {
+            console.info("ORDER: " + order.id)
+            let item = order["line_items"][0]
+            readFile("./src/labels/drink_order_refined.label").then((xml) => {
+                let labelTemplate = xml.toString()
+                    .replace("{{size}}", item["variation_name"][0])
+                    .replace("{{title}}", item["name"])
+                    .replace("{{details}}", item["modifiers"].map((m) => m.name).join(", "))
+
+                dymo.renderLabel(labelTemplate).then((label) => {
+                    this.latestImage = label
+                    if (this.realPrinterStatus) {
+                        console.info("PRINTING: " + order.id)
+                        dymo.print(this.$config.SELECTED_PRINTER, labelTemplate)
+                    }
+                })
+            }).catch((e) => console.error("readFile error: " + e.toString()))
+
+        })
+
 
     }
 }
@@ -183,5 +220,10 @@ li {
   &::after {
     border: none !important;
   }
+}
+
+#imageWrapper {
+  padding: 20px;
+  background: gray;
 }
 </style>

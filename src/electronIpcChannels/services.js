@@ -5,7 +5,7 @@ const services = {
     },
 
 
-    events: {
+    listeners: {
         action(event, data) {
             if (data.action === "START") {
                 if (data.service === "dymo_label_service") {

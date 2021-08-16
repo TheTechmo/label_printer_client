@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DieCutLabel Version="8.0" Units="twips" MediaType="Default">
+  <PaperOrientation>Landscape</PaperOrientation>
+  <Id>ReturnAddressInt</Id>
+  <PaperName>11352 Return Address Int</PaperName>
+  <DrawCommands>
+    <RoundRectangle X="0" Y="0" Width="1440" Height="3060" Rx="180" Ry="180"/>
+  </DrawCommands>
+  <ObjectInfo>
+    <ShapeObject>
+      <Name>Size Circle</Name>
+      <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+      <BackColor Alpha="0" Red="255" Green="255" Blue="255"/>
+      <LinkedObjectName></LinkedObjectName>
+      <Rotation>Rotation0</Rotation>
+      <IsMirrored>False</IsMirrored>
+      <IsVariable>False</IsVariable>
+      <ShapeType>Ellipse</ShapeType>
+      <LineWidth>10</LineWidth>
+      <LineAlignment>LeftOrTop</LineAlignment>
+      <FillColor Alpha="0" Red="0" Green="0" Blue="0"/>
+    </ShapeObject>
+    <Bounds X="129.5999" Y="113.4" Width="453.6" Height="453.6"/>
+  </ObjectInfo>
+  <ObjectInfo>
+    <TextObject>
+      <Name>TEXT</Name>
+      <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+      <BackColor Alpha="0" Red="255" Green="255" Blue="255"/>
+      <LinkedObjectName></LinkedObjectName>
+      <Rotation>Rotation0</Rotation>
+      <IsMirrored>False</IsMirrored>
+      <IsVariable>False</IsVariable>
+      <HorizontalAlignment>Center</HorizontalAlignment>
+      <VerticalAlignment>Middle</VerticalAlignment>
+      <TextFitMode>AlwaysFit</TextFitMode>
+      <UseFullFontHeight>True</UseFullFontHeight>
+      <Verticalized>False</Verticalized>
+      <StyledText>
+        <Element>
+          <String>{{size}}</String>
+          <Attributes>
+            <Font Family="Helvetica" Size="8" Bold="True" Italic="False" Underline="False" Strikeout="False"/>
+            <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+          </Attributes>
+        </Element>
+      </StyledText>
+    </TextObject>
+    <Bounds X="156.28" Y="145.9962" Width="408.3708" Height="372.3497"/>
+  </ObjectInfo>
+  <ObjectInfo>
+    <TextObject>
+      <Name>TEXT_1</Name>
+      <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+      <BackColor Alpha="0" Red="255" Green="255" Blue="255"/>
+      <LinkedObjectName></LinkedObjectName>
+      <Rotation>Rotation0</Rotation>
+      <IsMirrored>False</IsMirrored>
+      <IsVariable>False</IsVariable>
+      <HorizontalAlignment>Left</HorizontalAlignment>
+      <VerticalAlignment>Middle</VerticalAlignment>
+      <TextFitMode>ShrinkToFit</TextFitMode>
+      <UseFullFontHeight>True</UseFullFontHeight>
+      <Verticalized>False</Verticalized>
+      <StyledText>
+        <Element>
+          <String>{{title}}</String>
+          <Attributes>
+            <Font Family="Helvetica" Size="13" Bold="True" Italic="False" Underline="False" Strikeout="False"/>
+            <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+          </Attributes>
+        </Element>
+      </StyledText>
+    </TextObject>
+    <Bounds X="736.7377" Y="131.5039" Width="2202.126" Height="393.1096"/>
+  </ObjectInfo>
+  <ObjectInfo>
+    <TextObject>
+      <Name>TEXT_2</Name>
+      <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+      <BackColor Alpha="0" Red="255" Green="255" Blue="255"/>
+      <LinkedObjectName></LinkedObjectName>
+      <Rotation>Rotation0</Rotation>
+      <IsMirrored>False</IsMirrored>
+      <IsVariable>False</IsVariable>
+      <HorizontalAlignment>Left</HorizontalAlignment>
+      <VerticalAlignment>Middle</VerticalAlignment>
+      <TextFitMode>ShrinkToFit</TextFitMode>
+      <UseFullFontHeight>True</UseFullFontHeight>
+      <Verticalized>False</Verticalized>
+      <StyledText>
+        <Element>
+          <String>{{details}}</String>
+          <Attributes>
+            <Font Family="Helvetica" Size="7" Bold="False" Italic="False" Underline="False" Strikeout="False"/>
+            <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+          </Attributes>
+        </Element>
+      </StyledText>
+    </TextObject>
+    <Bounds X="163.6362" Y="636.2906" Width="2732.148" Height="669.016"/>
+  </ObjectInfo>
+</DieCutLabel>
