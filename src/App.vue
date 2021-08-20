@@ -17,7 +17,7 @@
                     </h2>
                     <h2>Printers</h2>
                     <ul>
-                        <li v-bind:key="'printer_' + name" v-for="(value, name) in printers">
+                        <li :key="'printer-' + name" v-for="(value, name) in printers">
                             <b-icon :icon="pIcon(value)" :variant="pColour(value)"></b-icon>
                             {{ name }}
                         </li>
@@ -25,7 +25,7 @@
                 </b-col>
                 <b-col cols="8">
                     <div id="imageWrapper">
-                        <img v-if="latestImage" id="labelImage" :src="`data:image/png;base64,${b64LabelPreview}`" alt="Label Preview" />
+                        <LabelPreview :key="'label-' + i" v-for="(label, i) in labels" :base64-data="label" />
                     </div>
                 </b-col>
             </b-row>
@@ -34,13 +34,14 @@
 </template>
 
 <script>
-import StatusBar from "./components/status/StatusBar";
+import StatusBar from "./components/status/StatusBar.vue";
 
 const xmlJS = require('xml-js')
 const {ipcRenderer} = require('electron')
 const moment = require('moment')
 const Dymo = require('dymojs')
 import { readFile } from 'fs/promises'
+import LabelPreview from "./components/LabelPreview";
 
 let dymo = new Dymo()
 
@@ -48,6 +49,7 @@ let dymo = new Dymo()
 export default {
     name: 'App',
     components: {
+        LabelPreview,
         StatusBar
     },
     data() {
@@ -56,7 +58,9 @@ export default {
             labelServiceStatus: null,
             connectedDevices: [],
             relayServerStatus: null,
-            latestImage: ""
+            labels: [
+
+            ]
         }
     },
     computed: {
@@ -152,6 +156,7 @@ export default {
             1000
         )
 
+
         setTimeout(() => {
             this.checkRelayServerStatus()
             this.checkDymoStatus()
@@ -173,20 +178,39 @@ export default {
 
         ipcRenderer.on('relayServer_newOrder', (event, order) => {
             console.info("ORDER: " + order.id)
-            let item = order["line_items"][0]
-            readFile("./src/labels/drink_order_refined.label").then((xml) => {
-                let labelTemplate = xml.toString()
-                    .replace("{{size}}", item["variation_name"][0])
-                    .replace("{{title}}", item["name"])
-                    .replace("{{details}}", item["modifiers"].map((m) => m.name).join(", "))
 
-                dymo.renderLabel(labelTemplate).then((label) => {
-                    this.latestImage = label
-                    if (this.realPrinterStatus) {
-                        console.info("PRINTING: " + order.id)
-                        dymo.print(this.$config.SELECTED_PRINTER, labelTemplate)
+            this.labels = []
+
+            let label_name = this.$config.LABEL_NAME.toString()
+            console.info(label_name)
+
+            readFile(`./src/labels/${ label_name }.label`).then((xml) => {
+
+                order["line_items"].forEach((item) => {
+
+                    let details = item["modifiers"].map((m) => m.name).join(", ") // todo test first
+
+                    if (Object.hasOwnProperty.call(item, 'note')) {
+                        details = details + "\n" + item['note']
                     }
+
+
+
+                    let labelTemplate = xml.toString()
+                        .replace("{{size}}", item["variation_name"][0])
+                        .replace("{{title}}", item["name"])
+                        .replace("{{details}}", details)
+
+                    dymo.renderLabel(labelTemplate).then((label) => {
+                        this.labels.push(this.fixTheFuckingDymoResponse(label))
+                        if (this.realPrinterStatus) {
+                            console.info("PRINTING: " + order.id)
+                            dymo.print(this.$config.SELECTED_PRINTER, labelTemplate)
+                        }
+                    })
+
                 })
+
             }).catch((e) => console.error("readFile error: " + e.toString()))
 
         })

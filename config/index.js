@@ -10,5 +10,6 @@ module.exports = {
         URL: "square-orders.zachb.nz",
         PING_INTERVAL: 10000
     },
-    SELECTED_PRINTER: "DYMO LabelWriter 400"
+    SELECTED_PRINTER: "DYMO LabelWriter 400",
+    LABEL_NAME: "drink_order_with_tagline"
 }

@@ -93,7 +93,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("module.exports = {\n    FAKE_LP_SERIAL: '1304201745272793964007',\n    ACCEPT_FAKE_LP: true,\n    TIME_CONSTRAINTS: {\n        FROM: \"0830\",\n        TO: \"1430\"\n    },\n    LABEL_SERVICE_POLLING_INTERVAL: 10000,\n    RELAY_SERVER: {\n        URL: \"square-orders.zachb.nz\",\n        PING_INTERVAL: 10000\n    },\n    SELECTED_PRINTER: \"DYMO LabelWriter 400\"\n}\n\n\n//# sourceURL=webpack:///./config/index.js?");
+eval("module.exports = {\n    FAKE_LP_SERIAL: '1304201745272793964007',\n    ACCEPT_FAKE_LP: true,\n    TIME_CONSTRAINTS: {\n        FROM: \"0830\",\n        TO: \"1430\"\n    },\n    LABEL_SERVICE_POLLING_INTERVAL: 10000,\n    RELAY_SERVER: {\n        URL: \"square-orders.zachb.nz\",\n        PING_INTERVAL: 10000\n    },\n    SELECTED_PRINTER: \"DYMO LabelWriter 400\",\n    LABEL_NAME: \"drink_order_with_tagline\"\n}\n\n//# sourceURL=webpack:///./config/index.js?");
 
 /***/ }),
 
