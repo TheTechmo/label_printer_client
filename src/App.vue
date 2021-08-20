@@ -85,9 +85,6 @@ export default {
             return now.isBetween(start, end)
 
         },
-        b64LabelPreview() {
-            return this.fixTheFuckingDymoResponse(this.latestImage)
-        }
     },
     asyncComputed: {
         printers: {

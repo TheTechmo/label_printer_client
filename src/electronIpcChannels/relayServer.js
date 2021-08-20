@@ -21,6 +21,7 @@ const relayServer = {
         } catch (e) {
             console.error("relay server init") // TODO restart until success
             console.error(e)
+            console.error(this.data.sock)
         }
 
         this.data.sock.on('message', (msg) => {
