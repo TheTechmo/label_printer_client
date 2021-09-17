@@ -11,9 +11,11 @@
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps"
   },
-  "main": "background.js",
+  "main": "background.ts",
   "dependencies": {
     "@babel/polyfill": "^7.11.5",
+    "@babel/preset-env": "^7.15.6",
+    "@babel/preset-typescript": "^7.15.0",
     "bootstrap": "^4.5.2",
     "bootstrap-vue": "^2.17.3",
     "core-js": "^3.6.5",
@@ -24,16 +26,22 @@
     "popper.js": "^1.16.1",
     "portal-vue": "^2.1.7",
     "usb-detection": "^4.10.0",
-    "vue": "^2.6.11",
+    "vue": "^2.6.12",
     "vue-async-computed": "^3.9.0",
     "websocket": "^1.0.34",
     "ws": "^8.1.0",
     "xml-js": "^1.6.11"
   },
   "devDependencies": {
+    "@types/electron": "^1.6.10",
+    "@typescript-eslint/eslint-plugin": "^4.18.0",
+    "@typescript-eslint/parser": "^4.18.0",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-plugin-typescript": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
+    "vue-template-compiler": "^2.6.12",
+    "@vue/eslint-config-typescript": "^7.0.0",
     "babel-eslint": "^10.1.0",
     "electron": "^13.2.1",
     "electron-devtools-installer": "^3.1.0",
@@ -43,10 +51,10 @@
     "node-sass": "^4.9.2",
     "sass": "^1.26.11",
     "sass-loader": "^10.0.2",
+    "typescript": "^4.4.2",
     "vue-cli-plugin-bootstrap-vue": "~0.8.0",
     "vue-cli-plugin-electron-builder": "~2.1.1",
-    "vue-cli-plugin-element": "~1.0.1",
-    "vue-template-compiler": "^2.6.11"
+    "vue-cli-plugin-element": "~1.0.1"
   },
   "eslintConfig": {
     "root": true,
@@ -55,10 +63,11 @@
     },
     "extends": [
       "plugin:vue/essential",
-      "eslint:recommended"
+      "eslint:recommended",
+      "@vue/typescript"
     ],
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "@typescript-eslint/parser"
     },
     "rules": {}
   },
@@ -66,5 +75,6 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "types": "src/main.d.ts"
 }

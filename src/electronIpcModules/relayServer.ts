@@ -1,13 +1,20 @@
 import WebSocket from 'ws'
-const config = require('../../config')
+import config from '../../config'
+import IpcModule from "./_ipcModule";
 
-const relayServer = {
+
+interface RelayServer extends IpcModule {
     data: {
-        sock: null,
+        sock: WebSocket | null
+    }
+}
+
+const relayServer: RelayServer = {
+    data: {
+        sock: null
     },
 
-    emit: () => {
-    },
+    emit: () => {},
 
     init() {
         try {
@@ -24,10 +31,10 @@ const relayServer = {
             console.error(this.data.sock)
         }
 
-        this.data.sock.on('message', (msg) => {
-            let order = JSON.parse(JSON.parse(msg.toString())).order
+        this.data.sock?.on('message', (msg) => {
+            const order = JSON.parse(JSON.parse(msg.toString())).order
             console.error("ORDER: " + order.id)
-            this.emit('newOrder', order)
+            this.emit?.('newOrder', order)
         })
 
         // setInterval(() => console.error(this.data.sock.readyState), 1000)
@@ -37,7 +44,7 @@ const relayServer = {
 
     handlers: {
         async status() {
-            return relayServer.data.sock.readyState
+            return relayServer.data.sock?.readyState
         }
     }
 }

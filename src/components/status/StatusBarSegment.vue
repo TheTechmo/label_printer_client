@@ -23,8 +23,10 @@
     </b-col>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import Vue from 'vue'
+
+export default Vue.extend({
     name: "StatusBarSegment",
     props: {
         status: Boolean,
@@ -41,7 +43,7 @@ export default {
         },
     },
     methods: {}
-}
+})
 </script>
 
 <style scoped lang="scss">

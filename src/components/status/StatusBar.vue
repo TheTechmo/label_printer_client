@@ -14,9 +14,13 @@
     </b-container>
 </template>
 
-<script>
-import StatusBarSegment from "./StatusBarSegment";
-export default {
+<script lang="ts">
+import StatusBarSegment from "./StatusBarSegment.vue";
+
+import Vue from 'vue'
+
+
+export default Vue.extend({
     name: "StatusBar",
     components: {
         StatusBarSegment
@@ -26,7 +30,7 @@ export default {
         rs_status: Boolean,
         ls_status: Boolean,
     }
-}
+})
 </script>
 
 <style scoped lang="scss">
