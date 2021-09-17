@@ -3,7 +3,6 @@ import 'mutationobserver-shim'
 import Vue from 'vue'
 import './plugins/bootstrap-vue'
 import App from './App.vue'
-import AsyncComputed from 'vue-async-computed'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import config from '../config'
 
@@ -14,8 +13,6 @@ import './assets/scss/app.scss'
 Vue.use(BootstrapVue)
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin)
-
-Vue.use(AsyncComputed)
 
 
 Vue.config.productionTip = false

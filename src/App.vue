@@ -25,12 +25,12 @@
                 </b-col>
                 <b-col cols="8">
                     <div id="imageWrapper">
-                        <LabelPreview :key="'label-' + i" v-for="(label, i) in labels" :base64-data="label" />
+                        <LabelPreview :key="'label-' + i" v-for="(label, i) in labels" :base64-data="label"/>
                     </div>
                 </b-col>
             </b-row>
         </b-container>
-        <admin-things />
+        <admin-things/>
     </div>
 </template>
 
@@ -41,10 +41,11 @@ import AdminThings from "@/components/AdminThings.vue";
 
 import Vue from 'vue'
 import * as xmlJS from 'xml-js'
-import { ipcRenderer } from 'electron'
+import {ipcRenderer} from 'electron'
 import moment from 'moment'
-import { readFile } from 'fs/promises'
+import {readFile} from 'fs/promises'
 import {Order, OrderLineItem, OrderLineItemModifier} from "square";
+import {ConnectedPrintersList, XmlPrinter} from "dymojs";
 
 
 // import * as Dymo from 'dymojs'
@@ -53,13 +54,6 @@ const Dymo = require('dymojs')
 let dymo = new Dymo()
 
 
-interface IData {
-    timestamp: string,
-    labelServiceStatus: boolean,
-    connectedDevices: Array<any>,
-    relayServerStatus: boolean,
-    labels: Array<string>
-}
 
 export default Vue.extend({
     name: 'App',
@@ -68,15 +62,14 @@ export default Vue.extend({
         LabelPreview,
         StatusBar
     },
-    data(): IData {
+    data() {
         return {
             timestamp: "",
             labelServiceStatus: false,
             connectedDevices: [],
             relayServerStatus: false,
-            labels: [
-
-            ]
+            labels: [] as Array<String>,
+            printers: {} as ConnectedPrintersList
         }
     },
     computed: {
@@ -85,12 +78,11 @@ export default Vue.extend({
                 || this.realPrinterStatus
         },
         realPrinterStatus(): boolean {
-            return this.printers !== undefined
-                && Object.hasOwnProperty.call(this.printers, this.$config.SELECTED_PRINTER)
+            return Object.hasOwnProperty.call(this.printers, this.$config.SELECTED_PRINTER)
                 && this.printers[this.$config.SELECTED_PRINTER]
         },
         devDeviceConnectedStatus(): boolean {
-            return this.connectedDevices.map((x) => x.serialNumber)
+            return this.connectedDevices.map((x: any) => x.serialNumber)
                 .indexOf(this.$config.FAKE_LP_SERIAL) > -1
         },
         isWorkingHours(): boolean {
@@ -100,32 +92,6 @@ export default Vue.extend({
             const end = moment(this.$config.TIME_CONSTRAINTS.TO, format).add(1, 'minute')
             return now.isBetween(start, end)
 
-        },
-    },
-    asyncComputed: {
-        printers: {
-            async get(): Promise<Object> {
-                let printersList = this.fixTheFuckingDymoResponse(await dymo.getPrinters())
-
-                let js = null
-                try {
-                    js = JSON.parse(xmlJS.xml2json(printersList, {compact: true}))
-                } catch (e) {
-                    return
-                }
-
-                let printersDict = {}
-
-                Object.values(js.Printers).forEach((obj: unknown) => {
-                    let name = obj.Name._text
-                    let connected = obj.IsConnected._text.toLowerCase() === "true"
-                    printersDict[name] = connected
-                })
-
-                return printersDict
-
-            },
-            default: {}
         },
     },
     methods: {
@@ -153,13 +119,38 @@ export default Vue.extend({
             ipcRenderer.invoke('relayServer_status').then((response) => {
                 this.relayServerStatus = response
             })
-        }
+        },
+        parseXmlPrinter(p: any): XmlPrinter {
+            return {
+                name: p?.Name._text,
+                modelName: p?.ModelName._text,
+                isConnected: p?.IsConnected._text.toLowerCase() == "true",
+                isLocal: p?.IsLocal._text.toLowerCase() == "true",
+                isTwinTurbo: p?.IsTwinTurbo._text.toLowerCase() == "true"
+            }
+
+        },
+        async updateConnectedPrinters(): Promise<void> {
+                let printersList = this.fixTheFuckingDymoResponse(await dymo.getPrinters())
+
+                let js = JSON.parse(xmlJS.xml2json(printersList, {compact: true})) // todo try catch
+
+                let printersDict: ConnectedPrintersList = {}
+
+                Object.values(js.Printers).forEach((obj: any) => {
+                    let p: XmlPrinter = this.parseXmlPrinter(obj)
+                    printersDict[p.name] = p.isConnected
+                })
+
+                this.printers = printersDict
+
+            },
     },
     mounted() {
-        this.$asyncComputed.printers.update()
+        this.updateConnectedPrinters()
         ipcRenderer.on('usbDevices_change', (event, {devices}) => {
             this.connectedDevices = devices
-            setTimeout(this.$asyncComputed.printers.update, 250)
+            setTimeout(this.updateConnectedPrinters, 250)
         })
 
     },
@@ -197,7 +188,7 @@ export default Vue.extend({
             let label_name = this.$config.LABEL_NAME.toString()
             console.info(label_name)
 
-            readFile(`./src/labels/${ label_name }.label`).then((xml: Buffer) => {
+            readFile(`./src/labels/${label_name}.label`).then((xml: Buffer) => {
 
                 order.lineItems?.forEach((item: OrderLineItem) => {
 

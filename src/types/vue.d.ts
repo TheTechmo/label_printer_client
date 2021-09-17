@@ -5,4 +5,8 @@ declare module 'vue/types/vue' {
     interface Vue {
         $config: IConfig
     }
+
+    interface App {
+        printers: number
+    }
 }

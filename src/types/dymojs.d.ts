@@ -20,4 +20,22 @@ declare module "dymojs" {
         getPrinters(): Promise<string>
     }
 
+
+    export interface XmlPrinter {
+        name: string,
+        modelName: string,
+        isConnected: boolean,
+        isLocal: boolean,
+        isTwinTurbo: boolean
+    }
+
+
+    interface PrintersInternal {
+        [key: string]: Printer
+    }
+
+    export interface ConnectedPrintersList {
+        [key: string]: boolean
+    }
+
 }
