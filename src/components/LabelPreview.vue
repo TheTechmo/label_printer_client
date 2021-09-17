@@ -4,13 +4,15 @@
     </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import Vue from 'vue'
+
+export default Vue.extend({
     name: "LabelPreview",
     props: {
         base64Data: String
     }
-}
+})
 </script>
 
 <style scoped>

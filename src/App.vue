@@ -30,54 +30,70 @@
                 </b-col>
             </b-row>
         </b-container>
+        <admin-things />
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import StatusBar from "./components/status/StatusBar.vue";
+import LabelPreview from "./components/LabelPreview.vue";
+import AdminThings from "@/components/AdminThings.vue";
 
-const xmlJS = require('xml-js')
-const {ipcRenderer} = require('electron')
-const moment = require('moment')
-const Dymo = require('dymojs')
+import Vue from 'vue'
+import * as xmlJS from 'xml-js'
+import { ipcRenderer } from 'electron'
+import moment from 'moment'
 import { readFile } from 'fs/promises'
-import LabelPreview from "./components/LabelPreview";
+import {Order, OrderLineItem, OrderLineItemModifier} from "square";
+
+
+// import * as Dymo from 'dymojs'
+const Dymo = require('dymojs')
 
 let dymo = new Dymo()
 
 
-export default {
+interface IData {
+    timestamp: string,
+    labelServiceStatus: boolean,
+    connectedDevices: Array<any>,
+    relayServerStatus: boolean,
+    labels: Array<string>
+}
+
+export default Vue.extend({
     name: 'App',
     components: {
+        AdminThings,
         LabelPreview,
         StatusBar
     },
-    data() {
+    data(): IData {
         return {
             timestamp: "",
-            labelServiceStatus: null,
+            labelServiceStatus: false,
             connectedDevices: [],
-            relayServerStatus: null,
+            relayServerStatus: false,
             labels: [
 
             ]
         }
     },
     computed: {
-        printerStatus() {
+        printerStatus(): boolean {
             return (process.env.NODE_ENV === 'development' && this.devDeviceConnectedStatus)
                 || this.realPrinterStatus
         },
-        realPrinterStatus() {
+        realPrinterStatus(): boolean {
             return this.printers !== undefined
                 && Object.hasOwnProperty.call(this.printers, this.$config.SELECTED_PRINTER)
                 && this.printers[this.$config.SELECTED_PRINTER]
         },
-        devDeviceConnectedStatus() {
+        devDeviceConnectedStatus(): boolean {
             return this.connectedDevices.map((x) => x.serialNumber)
                 .indexOf(this.$config.FAKE_LP_SERIAL) > -1
         },
-        isWorkingHours() {
+        isWorkingHours(): boolean {
             const format = "HHmm"
             const now = moment()
             const start = moment(this.$config.TIME_CONSTRAINTS.FROM, format).subtract(1, 'minute')
@@ -88,7 +104,7 @@ export default {
     },
     asyncComputed: {
         printers: {
-            async get() {
+            async get(): Promise<Object> {
                 let printersList = this.fixTheFuckingDymoResponse(await dymo.getPrinters())
 
                 let js = null
@@ -100,7 +116,7 @@ export default {
 
                 let printersDict = {}
 
-                Object.values(js.Printers).forEach((obj) => {
+                Object.values(js.Printers).forEach((obj: unknown) => {
                     let name = obj.Name._text
                     let connected = obj.IsConnected._text.toLowerCase() === "true"
                     printersDict[name] = connected
@@ -113,18 +129,18 @@ export default {
         },
     },
     methods: {
-        fixTheFuckingDymoResponse(data) {
+        fixTheFuckingDymoResponse(data: string): string {
             return data.substring(1, data.length - 1).replace(/\\n/g, "").replace(/\\/g, '')
         },
-        pIcon(p) {
+        pIcon(p: boolean) {
             return p ? 'check-circle-fill' : 'exclamation-triangle-fill'
         },
-        pColour(p) {
+        pColour(p: boolean) {
             return p ? 'success' : 'danger'
         },
         checkDymoStatus() {
             dymo.getStatus()
-                .then((status) => this.labelServiceStatus = !!status)
+                .then((status: string) => this.labelServiceStatus = !!status)
                 .catch(() => {
                     this.labelServiceStatus = false
                     ipcRenderer.send('services_action', {
@@ -173,7 +189,7 @@ export default {
             }
         })
 
-        ipcRenderer.on('relayServer_newOrder', (event, order) => {
+        ipcRenderer.on('relayServer_newOrder', (event, order: Order) => {
             console.info("ORDER: " + order.id)
 
             this.labels = []
@@ -181,24 +197,25 @@ export default {
             let label_name = this.$config.LABEL_NAME.toString()
             console.info(label_name)
 
-            readFile(`./src/labels/${ label_name }.label`).then((xml) => {
+            readFile(`./src/labels/${ label_name }.label`).then((xml: Buffer) => {
 
-                order["line_items"].forEach((item) => {
+                order.lineItems?.forEach((item: OrderLineItem) => {
 
-                    let details = item["modifiers"].map((m) => m.name).join(", ") // todo test first
+                    let details = item.modifiers?.map((m: OrderLineItemModifier) => m.name).join(", ") // todo test first
 
-                    if (Object.hasOwnProperty.call(item, 'note')) {
-                        details = details + "\n" + item['note']
+                    if (item.note != undefined) {
+                        details = details + "\n" + item.note
                     }
 
+                    let size = item.variationName != undefined ? item.variationName.charAt(0) : ""
 
 
                     let labelTemplate = xml.toString()
-                        .replace("{{size}}", item["variation_name"][0])
-                        .replace("{{title}}", item["name"])
-                        .replace("{{details}}", details)
+                        .replace("{{size}}", size)
+                        .replace("{{title}}", item.name != undefined ? item.name : "")
+                        .replace("{{details}}", details != undefined ? details : "")
 
-                    dymo.renderLabel(labelTemplate).then((label) => {
+                    dymo.renderLabel(labelTemplate).then((label: string) => {
                         this.labels.push(this.fixTheFuckingDymoResponse(label))
                         if (this.realPrinterStatus) {
                             console.info("PRINTING: " + order.id)
@@ -214,7 +231,7 @@ export default {
 
 
     }
-}
+})
 </script>
 
 <style lang="scss">

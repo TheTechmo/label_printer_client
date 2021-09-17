@@ -1,4 +1,6 @@
-const config = {
+import IConfig from './config'
+
+const config: IConfig = {
     FAKE_LP_SERIAL: '1304201745272793964007',
     ACCEPT_FAKE_LP: true,
     TIME_CONSTRAINTS: {
@@ -12,6 +14,6 @@ const config = {
     },
     SELECTED_PRINTER: "DYMO LabelWriter 400",
     LABEL_NAME: "drink_order_with_tagline"
-};
-export default config;
-//# sourceMappingURL=index.js.map
+}
+
+export default config

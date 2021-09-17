@@ -1,39 +1,30 @@
-const { exec } = require("child_process");
-
+import { exec } from 'child_process';
 const services = {
-    emit: () => {
-    },
-
-
+    emit() { },
     listeners: {
         action(event, data) {
             if (data.action === "START") {
                 if (data.service === "dymo_label_service") {
-
                     switch (process.platform) {
                         case "darwin":
                             exec("launchctl start com.dymo.dls.webservice", (err, stout, stderr) => {
-                                let reply = {
+                                const reply = {
                                     "error": err,
                                     "stout": stout,
                                     "stderr": stderr
-                                }
-                                event.reply('services_action_reply', reply)
-                            })
-                            break
-
+                                };
+                                event.reply('services_action_reply', reply);
+                            });
+                            break;
                         case "win32":
-                            throw Error("Not Implemented")
-                            exec("") // TODO
-                            break
+                            throw Error("Not Implemented");
+                        // exec("") // TODO
+                        // break
                     }
-
                 }
             }
         }
     }
-
-
-}
-
-export default services
+};
+export default services;
+//# sourceMappingURL=services.js.map
