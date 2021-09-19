@@ -32,9 +32,25 @@ const relayServer: RelayServer = {
         }
 
         this.data.sock?.on('message', (msg) => {
-            const order = JSON.parse(JSON.parse(msg.toString())).order
-            console.error("ORDER: " + order.id)
-            this.emit?.('newOrder', order)
+            console.info("WS MESSAGE RECEIVED")
+            const payload = JSON.parse(msg.toString())
+
+            if (payload.message === "ERROR") {
+                console.error("WS ERROR: ", payload.description)
+                return
+            } else if (payload.message === "NEW_ORDER") {
+                const order = JSON.parse(payload.order)
+                console.info("ORDER: " + order.id)
+
+                const response = {
+                    message: "RECEIVED_ORDER",
+                    orderId: order.id
+                }
+
+                this.data.sock?.send(JSON.stringify(response))
+                this.emit?.('newOrder', order)
+            }
+
         })
 
         // setInterval(() => console.error(this.data.sock.readyState), 1000)

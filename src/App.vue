@@ -46,6 +46,7 @@ import moment from 'moment'
 import {readFile} from 'fs/promises'
 import {Order, OrderLineItem, OrderLineItemModifier} from "square";
 import {ConnectedPrintersList, XmlPrinter} from "dymojs";
+import { Device } from "usb-detection";
 
 
 // import * as Dymo from 'dymojs'
@@ -66,9 +67,9 @@ export default Vue.extend({
         return {
             timestamp: "",
             labelServiceStatus: false,
-            connectedDevices: [],
+            connectedDevices: [] as Array<Device>,
             relayServerStatus: false,
-            labels: [] as Array<String>,
+            labels: [] as Array<String>, // TODO make label class?
             printers: {} as ConnectedPrintersList
         }
     },
@@ -78,7 +79,7 @@ export default Vue.extend({
                 || this.realPrinterStatus
         },
         realPrinterStatus(): boolean {
-            return Object.hasOwnProperty.call(this.printers, this.$config.SELECTED_PRINTER)
+            return this.$config.SELECTED_PRINTER in this.printers
                 && this.printers[this.$config.SELECTED_PRINTER]
         },
         devDeviceConnectedStatus(): boolean {
@@ -166,7 +167,7 @@ export default Vue.extend({
             this.checkDymoStatus()
         }, 2000)
 
-        setInterval(this.checkRelayServerStatus, this.$config.RELAY_SERVER.PING_INTERVAL)
+        setInterval(this.checkRelayServerStatus, this.$config.RELAY_SERVER.PING_INTERVAL) // TODO what is this
 
 
         setInterval(
@@ -180,8 +181,12 @@ export default Vue.extend({
             }
         })
 
+        // TODO replace with socket.io to get rid of IPC middleman
         ipcRenderer.on('relayServer_newOrder', (event, order: Order) => {
             console.info("ORDER: " + order.id)
+            console.log(order)
+
+            // TODO make custom square types for snake case
 
             this.labels = []
 

@@ -23,10 +23,23 @@ const relayServer = {
             console.error(this.data.sock);
         }
         (_a = this.data.sock) === null || _a === void 0 ? void 0 : _a.on('message', (msg) => {
-            var _a;
-            const order = JSON.parse(JSON.parse(msg.toString())).order;
-            console.error("ORDER: " + order.id);
-            (_a = this.emit) === null || _a === void 0 ? void 0 : _a.call(this, 'newOrder', order);
+            var _a, _b;
+            console.info("WS MESSAGE RECEIVED");
+            const payload = JSON.parse(msg.toString());
+            if (payload.message === "ERROR") {
+                console.error("WS ERROR: ", payload.description);
+                return;
+            }
+            else if (payload.message === "NEW_ORDER") {
+                const order = JSON.parse(payload.order);
+                console.info("ORDER: " + order.id);
+                const response = {
+                    message: "RECEIVED_ORDER",
+                    orderId: order.id
+                };
+                (_a = this.data.sock) === null || _a === void 0 ? void 0 : _a.send(JSON.stringify(response));
+                (_b = this.emit) === null || _b === void 0 ? void 0 : _b.call(this, 'newOrder', order);
+            }
         });
         // setInterval(() => console.error(this.data.sock.readyState), 1000)
         // this.data.sock.on('open', console.error)
