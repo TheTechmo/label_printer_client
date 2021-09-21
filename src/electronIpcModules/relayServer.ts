@@ -1,11 +1,8 @@
 import WebSocket from 'ws'
-<<<<<<< Updated upstream:src/electronIpcModules/relayServer.ts
 import config from '../../config'
 import IpcModule from "./_ipcModule";
-=======
 
 const config = require('../../config')
->>>>>>> Stashed changes:src/electronIpcChannels/relayServer.js
 
 
 interface RelayServer extends IpcModule {
@@ -44,7 +41,6 @@ const relayServer: RelayServer = {
             console.error(this.data.sock)
         }
 
-<<<<<<< Updated upstream:src/electronIpcModules/relayServer.ts
         this.data.sock?.on('message', (msg) => {
             console.info("WS MESSAGE RECEIVED")
             const payload = JSON.parse(msg.toString())
@@ -66,8 +62,6 @@ const relayServer: RelayServer = {
             }
 
         })
-=======
->>>>>>> Stashed changes:src/electronIpcChannels/relayServer.js
 
         // setInterval(() => console.error(this.data.sock.readyState), 1000)
 
