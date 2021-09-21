@@ -1,6 +1,11 @@
 import WebSocket from 'ws'
+<<<<<<< Updated upstream:src/electronIpcModules/relayServer.ts
 import config from '../../config'
 import IpcModule from "./_ipcModule";
+=======
+
+const config = require('../../config')
+>>>>>>> Stashed changes:src/electronIpcChannels/relayServer.js
 
 
 interface RelayServer extends IpcModule {
@@ -19,18 +24,27 @@ const relayServer: RelayServer = {
     init() {
         try {
             this.data.sock = new WebSocket("wss://" + config.RELAY_SERVER.URL, 'wss', {
-            method: 'POST',
-            headers: {
-                "X-SECRET": process.env.RELAY_SERVER_SECRET
-            },
-            followRedirects: true
-        })
+                    method: 'POST',
+                    headers: {
+                        "X-SECRET": process.env.RELAY_SERVER_SECRET
+                    },
+                    followRedirects: true,
+                },
+            )
+
+            this.data.sock.on('message', (msg) => {
+                let order = JSON.parse(JSON.parse(msg.toString())).order
+                console.error("ORDER: " + order.id)
+                this.emit('newOrder', order)
+            })
         } catch (e) {
+            console.info("error")
             console.error("relay server init") // TODO restart until success
             console.error(e)
             console.error(this.data.sock)
         }
 
+<<<<<<< Updated upstream:src/electronIpcModules/relayServer.ts
         this.data.sock?.on('message', (msg) => {
             console.info("WS MESSAGE RECEIVED")
             const payload = JSON.parse(msg.toString())
@@ -52,6 +66,8 @@ const relayServer: RelayServer = {
             }
 
         })
+=======
+>>>>>>> Stashed changes:src/electronIpcChannels/relayServer.js
 
         // setInterval(() => console.error(this.data.sock.readyState), 1000)
 

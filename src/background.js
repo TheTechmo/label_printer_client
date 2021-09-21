@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 'use strict';
 import { __awaiter } from "tslib";
 import { app, protocol, BrowserWindow, nativeTheme, ipcMain } from 'electron';
@@ -5,6 +6,25 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import ipcModules from "./electronIpcModules";
 const isDevelopment = process.env.NODE_ENV !== 'production';
+=======
+'use strict'
+
+import {app, protocol, BrowserWindow, nativeTheme, ipcMain} from 'electron'
+import {createProtocol} from 'vue-cli-plugin-electron-builder/lib'
+import installExtension, {VUEJS_DEVTOOLS} from 'electron-devtools-installer'
+import ipcChannels from "./electronIpcChannels";
+import * as Sentry from '@sentry/node'
+
+Sentry.init({
+    dsn: "https://462893ae662545fd9f0082e734096003@o269869.ingest.sentry.io/5918874",
+    tracesSampleRate: 1.0,
+});
+
+
+const isDevelopment = process.env.NODE_ENV !== 'production'
+
+
+>>>>>>> Stashed changes
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
     { scheme: 'app', privileges: { secure: true, standard: true } }

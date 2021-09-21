@@ -14,8 +14,13 @@
   "main": "background.ts",
   "dependencies": {
     "@babel/polyfill": "^7.11.5",
+<<<<<<< Updated upstream
     "@babel/preset-env": "^7.15.6",
     "@babel/preset-typescript": "^7.15.0",
+=======
+    "@sentry/node": "^6.11.0",
+    "@sentry/tracing": "^6.11.0",
+>>>>>>> Stashed changes
     "bootstrap": "^4.5.2",
     "bootstrap-vue": "^2.17.3",
     "core-js": "^3.6.5",
