@@ -1,6 +1,7 @@
-import { exec } from 'child_process'
+import { exec, execFile } from 'child_process'
 import { IpcMainEvent } from 'electron'
 import IpcModule from "./_ipcModule";
+import config from '../../config'
 
 interface ServiceActionArgs {
     action: "START",
@@ -29,9 +30,15 @@ const services: IpcModule = {
                             break
 
                         case "win32":
-                            throw Error("Not Implemented")
-                            // exec("") // TODO
-                            // break
+                            execFile(config.WINDOWS_DLS.PATH + '\\' + config.WINDOWS_DLS.FILE, (err, stout, stderr) => {
+                                const reply = {
+                                    "error": err,
+                                    "stout": stout,
+                                    "stderr": stderr
+                                }
+                                event.reply('services_action_reply', reply)
+                            })
+                            break
                     }
 
                 }

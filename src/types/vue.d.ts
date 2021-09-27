@@ -3,7 +3,8 @@ import IConfig from '../../config/config'
 
 declare module 'vue/types/vue' {
     interface Vue {
-        $config: IConfig
+        $config: IConfig,
+        $isDevEnv: boolean
     }
 
     interface App {

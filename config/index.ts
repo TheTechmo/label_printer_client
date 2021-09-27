@@ -13,7 +13,15 @@ const config: IConfig = {
         PING_INTERVAL: 10000
     },
     SELECTED_PRINTER: "DYMO LabelWriter 400",
-    LABEL_NAME: "drink_order_with_tagline"
+    LABEL_NAME: "drink_order_with_tagline",
+    LABEL_DETAILS_MAX_CHARS: 45,
+    WINDOWS_DLS: {
+        PATH: "C:\\Program Files (x86)\\DYMO\\DYMO Label Software",
+        FILE: "DYMO.DLS.Printing.Host.exe"
+    },
+    ALLOWED_CATEGORIES: (category) => {
+        return category.toLowerCase().indexOf("drink") > -1
+    }
 }
 
 export default config

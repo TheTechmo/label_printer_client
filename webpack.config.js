@@ -24,9 +24,10 @@ module.exports = {
             path.resolve(__dirname + '/src'),
             path.resolve(__dirname + '/node_modules')
         ],
-        // alias: {
-        //     '@config': path.resolve(__dirname, '/config')
-        // }
+        alias: {
+            '@config': path.resolve(__dirname, '/config'),
+            '@utils': path.resolve(__dirname, '/src/utils')
+        }
         // alias: {
         //     ['$']: path.resolve(__dirname),
         //     ['~']: path.resolve(__dirname + "/src")

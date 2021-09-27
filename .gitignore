@@ -2,7 +2,11 @@
 node_modules
 /dist
 /dist_electron
+*.p12
 
+# Typescript
+#*.js
+#*.js.map
 
 # local env files
 .env.local

@@ -18,6 +18,7 @@ Vue.use(IconsPlugin)
 Vue.config.productionTip = false
 
 Vue.prototype.$config = config
+Vue.prototype.$isDevEnv = process.env.NODE_ENV === "development"
 
 new Vue({
   render: h => h(App),

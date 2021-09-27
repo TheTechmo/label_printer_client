@@ -44,15 +44,19 @@ import * as xmlJS from 'xml-js'
 import {ipcRenderer} from 'electron'
 import moment from 'moment'
 import {readFile} from 'fs/promises'
-import {Order, OrderLineItem, OrderLineItemModifier} from "square";
+import {CatalogCategory, Order, OrderLineItem, OrderLineItemModifier} from "square";
 import {ConnectedPrintersList, XmlPrinter} from "dymojs";
 import { Device } from "usb-detection";
+import { splitLinesToFit } from "@/utils/strings";
+import { orderItemDevLog } from "@/utils/debug";
+import {ItemCategories, OrderNotification} from "square-custom";
+import {range} from "lodash";
 
 
 // import * as Dymo from 'dymojs'
 const Dymo = require('dymojs')
 
-let dymo = new Dymo()
+let dymo = new Dymo({hostname: "localhost"})
 
 
 
@@ -182,7 +186,10 @@ export default Vue.extend({
         })
 
         // TODO replace with socket.io to get rid of IPC middleman
-        ipcRenderer.on('relayServer_newOrder', (event, order: Order) => {
+        ipcRenderer.on('relayServer_newOrder', (event, orderNotif: OrderNotification) => {
+            const order: Order = orderNotif.order;
+            const categories: ItemCategories = orderNotif.categories
+
             console.info("ORDER: " + order.id)
             console.log(order)
 
@@ -194,34 +201,109 @@ export default Vue.extend({
             console.info(label_name)
 
             readFile(`./src/labels/${label_name}.label`).then((xml: Buffer) => {
+                console.log("Opened label template")
 
+                console.log("\n===== PROCESSING ITEMS =====\n")
+
+                // TODO only print if item is a drink
+                // TODO repeat for quantities
                 order.lineItems?.forEach((item: OrderLineItem) => {
+                    let log = orderItemDevLog(item.name, this.devDeviceConnectedStatus || this.$isDevEnv)
+                    console.log(item)
 
-                    let details = item.modifiers?.map((m: OrderLineItemModifier) => m.name).join(", ") // todo test first
-
-                    if (item.note != undefined) {
-                        details = details + "\n" + item.note
+                    if (item.uid == undefined) {
+                        log("Item UID could not be found. ===IGNORING===")
+                        return;
                     }
 
+                    // TEST CATEGORY
+                    if (!(item.uid in categories)) {
+                        log("Could not find category for item. ===IGNORING===")
+                        return;
+                    }
+
+                    let category: string = categories[item.uid].categoryData.name
+
+                    if (category == undefined) {
+                        log("Item category is invalid. ===IGNORING===")
+                        return;
+                    }
+
+                    log("Category", category)
+
+                    // If allowed categories is specified as a list of names, test if name is in list
+                    if (Array.isArray(this.$config.ALLOWED_CATEGORIES)) {
+                        if (this.$config.ALLOWED_CATEGORIES.indexOf(category) < 0) {
+                            log("Category not allowed. ===IGNORING===")
+                            return
+                        }
+
+                    }
+                    // If allowed categories is a function that returns a boolean (if category is allowed), run that function
+                    else if ((typeof this.$config.ALLOWED_CATEGORIES) === "function") {
+                        if (!this.$config.ALLOWED_CATEGORIES(category)) {
+                            log("Category not allowed. ===IGNORING===")
+                            return
+                        }
+                    }
+
+                    let details;
+
+                    // If item has modifiers, construct a string containing modifier names, else an empty string
+                    if (item.modifiers != undefined && item.modifiers.length > 0) {
+                        details = item.modifiers?.filter((m: OrderLineItemModifier) => m.name != undefined)
+                            .map((m: OrderLineItemModifier) => m.name).join(", ")
+                    } else {
+                        details = ""
+                    }
+
+                    log("Details", details)
+
+                    // If item has note, append note text to details
+                    if (item.note != undefined) {
+                        log("Note", item.note)
+                        details = details + ", " + item.note
+                    }
+
+                    // Run algorithm to insert new lines at the right places to make details fit the width of a label
+                    details = splitLinesToFit(details, this.$config.LABEL_DETAILS_MAX_CHARS)
+
+                    // Get size letter (S, L)
                     let size = item.variationName != undefined ? item.variationName.charAt(0) : ""
+                    log("Size", size)
 
-
+                    // Insert info into label template
                     let labelTemplate = xml.toString()
                         .replace("{{size}}", size)
                         .replace("{{title}}", item.name != undefined ? item.name : "")
                         .replace("{{details}}", details != undefined ? details : "")
 
-                    dymo.renderLabel(labelTemplate).then((label: string) => {
-                        this.labels.push(this.fixTheFuckingDymoResponse(label))
+                    log("Label templated")
+
+                    // Render labels
+                    for (let i of range(parseInt(item.quantity))) {
+                        dymo.renderLabel(labelTemplate).then((label: string) => {
+                            if (label == undefined || label.toLowerCase().includes("error")) {
+                                console.error("[%s] LABEL RENDERING ERROR OCCURRED:", item.name, label)
+                            }
+                            log("Label rendered (%s of %s)", i+1, item.quantity)
+
+                            this.labels.push(this.fixTheFuckingDymoResponse(label))
+                            log("Label pushed to state (%s of %s)", i+1, item.quantity)
+
+
+                        })
+
+                        // Print labels if printer connected
                         if (this.realPrinterStatus) {
-                            console.info("PRINTING: " + order.id)
+                            log("Printing label (%s of %s)", i+1, item.quantity)
                             dymo.print(this.$config.SELECTED_PRINTER, labelTemplate)
                         }
-                    })
+                    }
 
                 })
 
-            }).catch((e) => console.error("readFile error: " + e.toString()))
+            }).catch((e) => console.error("Templating error: " + e.toString()))
 
         })
 

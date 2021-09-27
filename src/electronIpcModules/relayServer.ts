@@ -1,8 +1,7 @@
 import WebSocket from 'ws'
 import config from '../../config'
 import IpcModule from "./_ipcModule";
-
-const config = require('../../config')
+import {Order} from "square";
 
 
 interface RelayServer extends IpcModule {
@@ -29,11 +28,6 @@ const relayServer: RelayServer = {
                 },
             )
 
-            this.data.sock.on('message', (msg) => {
-                let order = JSON.parse(JSON.parse(msg.toString())).order
-                console.error("ORDER: " + order.id)
-                this.emit('newOrder', order)
-            })
         } catch (e) {
             console.info("error")
             console.error("relay server init") // TODO restart until success
@@ -41,24 +35,26 @@ const relayServer: RelayServer = {
             console.error(this.data.sock)
         }
 
-        this.data.sock?.on('message', (msg) => {
-            console.info("WS MESSAGE RECEIVED")
-            const payload = JSON.parse(msg.toString())
+        this.data.sock?.on('message', (msg: Buffer) => {
+            console.info("[WS] MESSAGE RECEIVED")
+            const message = JSON.parse(msg.toString())
+            // console.log(message)
 
-            if (payload.message === "ERROR") {
-                console.error("WS ERROR: ", payload.description)
+            if (message.message === "ERROR") {
+                console.error("     RECEIVED ERROR: ", message.description)
                 return
-            } else if (payload.message === "NEW_ORDER") {
-                const order = JSON.parse(payload.order)
-                console.info("ORDER: " + order.id)
+            } else if (message.message === "NEW_ORDER") {
+                const payload = JSON.parse(message.payload)
+                console.info("ORDER: " + payload.order)
+
 
                 const response = {
                     message: "RECEIVED_ORDER",
-                    orderId: order.id
+                    orderId: payload.order.id
                 }
 
                 this.data.sock?.send(JSON.stringify(response))
-                this.emit?.('newOrder', order)
+                this.emit?.('newOrder', payload)
             }
 
         })
