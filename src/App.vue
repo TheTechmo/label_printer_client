@@ -44,7 +44,7 @@ import * as xmlJS from 'xml-js'
 import {ipcRenderer} from 'electron'
 import moment from 'moment'
 import {readFile} from 'fs/promises'
-import {CatalogCategory, Order, OrderLineItem, OrderLineItemModifier} from "square";
+import {Order, OrderLineItem, OrderLineItemModifier} from "square";
 import {ConnectedPrintersList, XmlPrinter} from "dymojs";
 import { Device } from "usb-detection";
 import { splitLinesToFit } from "@/utils/strings";
