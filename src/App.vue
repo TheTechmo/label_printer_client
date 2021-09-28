@@ -56,7 +56,11 @@ import {range} from "lodash";
 // import * as Dymo from 'dymojs'
 const Dymo = require('dymojs')
 
-let dymo = new Dymo({hostname: "localhost"})
+let dymo = new Dymo({
+    hostname: process.platform == "win32"
+        ? "localhost"
+        : "127.0.0.1"
+})
 
 
 

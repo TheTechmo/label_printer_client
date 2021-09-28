@@ -5,8 +5,8 @@ node_modules
 *.p12
 
 # Typescript
-#*.js
-#*.js.map
+*.js
+*.js.map
 
 # local env files
 .env.local
