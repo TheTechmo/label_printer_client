@@ -25,6 +25,7 @@
                 </b-col>
                 <b-col cols="8">
                     <div id="imageWrapper">
+                        <FancyLabel :label="null" />
                         <LabelPreview :key="'label-' + i" v-for="(label, i) in labels" :base64-data="label"/>
                     </div>
                 </b-col>
@@ -36,7 +37,7 @@
 
 <script lang="ts">
 import StatusBar from "./components/status/StatusBar.vue";
-import LabelPreview from "./components/LabelPreview.vue";
+import LabelPreview from "./components/label/LabelPreview.vue";
 import AdminThings from "@/components/AdminThings.vue";
 
 import Vue from 'vue'
@@ -51,6 +52,7 @@ import { splitLinesToFit } from "@/utils/strings";
 import { orderItemDevLog } from "@/utils/debug";
 import {ItemCategories, OrderNotification} from "square-custom";
 import {range} from "lodash";
+import FancyLabel from "@/components/label/FancyLabel.vue";
 
 
 // import * as Dymo from 'dymojs'
@@ -67,6 +69,7 @@ let dymo = new Dymo({
 export default Vue.extend({
     name: 'App',
     components: {
+        FancyLabel,
         AdminThings,
         LabelPreview,
         StatusBar
