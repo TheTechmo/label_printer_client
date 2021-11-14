@@ -1,4 +1,7 @@
 <template>
+    <!--
+        THIS IS A WORK IN PROGRESS! The DLS rendered images look terrible so I plan on rendering my own.
+    -->
     <div class="fancy-label">
         <b-row class="label-header" no-gutters>
             <b-col cols="2" class="justify-content-center">

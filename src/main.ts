@@ -17,6 +17,7 @@ Vue.use(IconsPlugin)
 
 Vue.config.productionTip = false
 
+// Just taking a few shortcuts...
 Vue.prototype.$config = config
 Vue.prototype.$isDevEnv = process.env.NODE_ENV === "development"
 
