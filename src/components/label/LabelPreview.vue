@@ -7,6 +7,7 @@
 <script lang="ts">
 import Vue from 'vue'
 
+// Just takes the base-64 data of a rendered label and displays it.
 export default Vue.extend({
     name: "LabelPreview",
     props: {

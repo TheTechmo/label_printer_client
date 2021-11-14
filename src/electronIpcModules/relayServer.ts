@@ -1,14 +1,14 @@
 import WebSocket from 'ws'
 import config from '../../config'
 import IpcModule from "./_ipcModule";
-import {Order} from "square";
 
-
+// State
 interface RelayServer extends IpcModule {
     data: {
         sock: WebSocket | null
     }
 }
+
 
 const relayServer: RelayServer = {
     data: {
@@ -19,6 +19,7 @@ const relayServer: RelayServer = {
 
     init() {
         try {
+            // Establish websocket connection with auth
             this.data.sock = new WebSocket("wss://" + config.RELAY_SERVER.URL, 'wss', {
                     method: 'POST',
                     headers: {
@@ -35,25 +36,33 @@ const relayServer: RelayServer = {
             console.error(this.data.sock)
         }
 
+        // When we receive a message
         this.data.sock?.on('message', (msg: Buffer) => {
             console.info("[WS] MESSAGE RECEIVED")
-            const message = JSON.parse(msg.toString())
+            const message = JSON.parse(msg.toString()) // Parse to JSON
             // console.log(message)
 
+            // If the message contains an error
             if (message.message === "ERROR") {
                 console.error("     RECEIVED ERROR: ", message.description)
                 return
-            } else if (message.message === "NEW_ORDER") {
-                const payload = JSON.parse(message.payload)
+            }
+
+            // If the message contains a new order
+            else if (message.message === "NEW_ORDER") {
+                const payload = JSON.parse(message.payload) // Parse payload
                 console.info("ORDER: " + payload.order)
 
-
+                // Create a response payload
                 const response = {
                     message: "RECEIVED_ORDER",
                     orderId: payload.order.id
                 }
 
+                // Send response
                 this.data.sock?.send(JSON.stringify(response))
+
+                // Pass order to frontend
                 this.emit?.('newOrder', payload)
             }
 

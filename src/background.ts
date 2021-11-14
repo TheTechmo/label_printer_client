@@ -4,7 +4,7 @@ import {app, protocol, BrowserWindow, nativeTheme, ipcMain} from 'electron'
 import {createProtocol} from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, {VUEJS_DEVTOOLS} from 'electron-devtools-installer'
 import ipcModules from "./electronIpcModules"
-
+import config from '../config'
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -20,8 +20,9 @@ async function createWindow() {
 
     // Create the browser window.
     const win = new BrowserWindow({
-        width: 1600,
-        height: 800,
+        width: config.WINDOW.WIDTH || 1600,
+        height: config.WINDOW.HEIGHT || 800,
+        fullscreen: config.WINDOW.START_FULLSCREEN || false,
         webPreferences: {
 
             // Use pluginOptions.nodeIntegration, leave this alone
@@ -39,7 +40,7 @@ async function createWindow() {
         await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
 
 
-        if (!process.env.IS_TEST) win.webContents.openDevTools()
+        if (config.WINDOW.START_WITH_DEVTOOLS_OPEN) win.webContents.openDevTools()
 
     } else {
 
@@ -50,7 +51,10 @@ async function createWindow() {
     }
 
 
+    // Let's establish our IPC channels, shall we?
     Object.entries(ipcModules).forEach(([mod_name, mod]) => {
+
+        // If the module wants to use emit, we'll give it a wrapper of emit so that we can prefix the channel's name
         if (mod.emit != undefined) {
             mod.emit = (ch, args) => {
                 win.webContents.send(mod_name + "_" + ch, args)
@@ -75,8 +79,7 @@ async function createWindow() {
             })
         }
 
-        // Execute init code in module
-        // mod.init && mod.init()
+        // Execute module init code
         mod.init?.()
 
 

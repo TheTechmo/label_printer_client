@@ -1,10 +1,16 @@
 <template>
+    <!-- Coloured parent -->
     <b-col :class="'status-segment bg-' + colour">
+
+        <!-- Inner content -->
         <div class="status-segment-inner">
             <b-row align-v="center" no-gutters>
                 <b-col/>
+
+                <!-- Large centered column -->
                 <b-col cols="8">
                     <b-row class="status-segment-row text-center" align-v="center" no-gutters>
+                        <!-- Icon -->
                         <b-col class="text-center" cols="2">
                             <b-icon class="status-icon"
                                     :data-blink="!status"
@@ -12,6 +18,7 @@
                                     font-scale="2"></b-icon>
                         </b-col>
                         <b-col>
+                            <!-- Text -->
                             <slot/>
                         </b-col>
                     </b-row>
@@ -31,18 +38,17 @@ export default Vue.extend({
     props: {
         status: Boolean,
     },
-    data() {
-        return {}
-    },
     computed: {
+        // Get colour from status
         colour() {
             return this.status ? "success" : "danger"
         },
+
+        // Get icon from status
         icon() {
             return this.status ? 'check-circle-fill' : 'exclamation-triangle-fill'
         },
     },
-    methods: {}
 })
 </script>
 

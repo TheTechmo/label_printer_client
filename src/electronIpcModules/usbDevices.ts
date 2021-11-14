@@ -23,10 +23,13 @@ const usbDevices: IpcModule = {
 
 
     init() {
+        // Start monitoring when app is started
         usbDetect.startMonitoring()
 
+        // Give app all devices
         findAndEmit(null)
 
+        // When a change is detected, give app info on that changed device
         usbDetect.on('change', (device) => {
             findAndEmit(device)
         });
